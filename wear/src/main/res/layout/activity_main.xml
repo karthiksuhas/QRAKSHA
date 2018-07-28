@@ -9,21 +9,21 @@
     tools:context=".MainActivity"
     tools:deviceIds="wear">
 
-    <LinearLayout
+    <FrameLayout
+
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"	
-        app:layout_box="all">
+        android:padding="5dp"
+        app:boxedEdges="all">
 
         <android.support.wearable.view.DelayedConfirmationView
             android:id="@+id/delayed_confirmation"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
+            android:cropToPadding="true"
             android:importantForAutofill="auto"
             android:src="@mipmap/stop"
-            android:cropToPadding="true"
             app:circle_border_color="@color/white"
             app:circle_border_width="@dimen/circle_border_normal_width"
             app:circle_color="@color/red"
@@ -32,5 +32,5 @@
             app:circle_radius_pressed="@dimen/circle_radius_pressed" />
 
 
-    </LinearLayout>
+    </FrameLayout>
 </android.support.wearable.view.BoxInsetLayout>

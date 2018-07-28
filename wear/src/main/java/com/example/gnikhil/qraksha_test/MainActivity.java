@@ -1,11 +1,14 @@
 package com.example.gnikhil.qraksha_test;
 
 import android.content.BroadcastReceiver;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.wearable.activity.WearableActivity;
 import android.view.View;
@@ -38,6 +41,11 @@ public class MainActivity extends WearableActivity implements
         delayedConfirmationView = (DelayedConfirmationView) findViewById(R.id.delayed_confirmation);
         delayedConfirmationView.setTotalTimeMs(NUM_SECONDS * 1000);
 
+        // Vibrate for 2 seconds to indicate that QRaksha app started Timer
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(VibrationEffect.createOneShot(2000,VibrationEffect.DEFAULT_AMPLITUDE));
+
+        // 2 second delay before starting the timer for the app initializations to complete
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
@@ -77,8 +85,6 @@ public class MainActivity extends WearableActivity implements
         String onClickMessage = "Start the panic sequence ";
         new SendMessage(TIMER_FINISHED_PATH, onClickMessage).start();
         Log.e(TAG, "onTimerFinished: " + onClickMessage);
-        // TODO
-        // Vibrate to inform that the message is sent to the mobile
     }
 
     public class Receiver extends BroadcastReceiver {
@@ -86,12 +92,22 @@ public class MainActivity extends WearableActivity implements
         public void onReceive(Context context, Intent intent) {
             String onMessageReceived = "Panic sequence started on the mobile";
             Log.e(TAG, "BroadcastReceiver: " + onMessageReceived);
+
             DelayedConfirmationView imgView;
             imgView =  findViewById(R.id.delayed_confirmation);
             imgView.setImageResource(R.mipmap.sos);
-            finish();
-            // TODO
-            // Sound Panic Alarm
+
+            MediaPlayer mediaPlayer = MediaPlayer.create(context, R.raw.police_siren);
+            mediaPlayer.start();
+
+            // 5 second delay before exiting the interface
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    finish();
+                }
+            }, 5000);
         }
     }
 
