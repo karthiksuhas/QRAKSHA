@@ -139,26 +139,16 @@ public class MainActivity extends AppCompatActivity  {
                         //if the Task fails, then…..//
 
                     } catch (ExecutionException exception) {
-
-                        //TO DO: Handle the exception//
-
+                        //TODO: Handle the exception//
                     } catch (InterruptedException exception) {
-
-                        //TO DO: Handle the exception//
-
+                        //TODO: Handle the exception//
                     }
-
                 }
-
             } catch (ExecutionException exception) {
-
-                //TO DO: Handle the exception//
-
+                //TODO: Handle the exception//
             } catch (InterruptedException exception) {
-
-                //TO DO: Handle the exception//
+                //TODO: Handle the exception//
             }
-
         }
     }
 }

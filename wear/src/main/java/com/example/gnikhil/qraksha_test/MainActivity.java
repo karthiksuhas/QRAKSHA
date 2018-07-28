@@ -122,15 +122,15 @@ public class MainActivity extends WearableActivity implements
                         Integer result = Tasks.await(sendMessageTask);
                         //Handle the errors//
                     } catch (ExecutionException exception) {
-                        //TO DO//
+                        //TODO: Handle the exception//
                     } catch (InterruptedException exception) {
-                        //TO DO//
+                        //TODO: Handle the exception//
                     }
                 }
             } catch (ExecutionException exception) {
-                //TO DO//
+                //TODO: Handle the exception//
             } catch (InterruptedException exception) {
-                //TO DO//
+                //TODO: Handle the exception//
             }
         }
     }
