@@ -1,36 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<android.support.wear.widget.BoxInsetLayout
+<android.support.wearable.view.BoxInsetLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_grey"
-    android:padding="@dimen/box_inset_layout_padding"
+    android:layout_width="match_parent"
     tools:context=".MainActivity"
     tools:deviceIds="wear">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="@dimen/inner_frame_layout_padding"
         android:gravity="center_horizontal"
         android:orientation="vertical"	
-        app:boxedEdges="all">
+        app:layout_box="all">
 
-        <Button
-            android:id="@+id/talkClick"
+        <android.support.wearable.view.DelayedConfirmationView
+            android:id="@+id/delayed_confirmation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Talk to the handheld"/>
+            android:layout_gravity="center"
+            android:importantForAutofill="auto"
+            android:src="@mipmap/stop"
+            android:cropToPadding="true"
+            app:circle_border_color="@color/white"
+            app:circle_border_width="@dimen/circle_border_normal_width"
+            app:circle_color="@color/red"
+            app:circle_padding="@dimen/circle_padding"
+            app:circle_radius="@dimen/circle_radius"
+            app:circle_radius_pressed="@dimen/circle_radius_pressed" />
 
-        <TextView
-            android:id="@+id/text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            />
+
     </LinearLayout>
-</android.support.wear.widget.BoxInsetLayout>
-
-
+</android.support.wearable.view.BoxInsetLayout>

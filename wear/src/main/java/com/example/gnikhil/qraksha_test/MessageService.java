@@ -6,14 +6,14 @@ import android.support.v4.content.LocalBroadcastManager;
 import com.google.android.gms.wearable.WearableListenerService;
 
 public class MessageService extends WearableListenerService {
-
+    private static final String PANIC_STARTED_PATH = "/qraksha_started";
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
 
-        if (messageEvent.getPath().equals("/qraksha_test")) {
+        if (messageEvent.getPath().equals(PANIC_STARTED_PATH)) {
             final String message = new String(messageEvent.getData());
 
-//Broadcast the received data layer messages//
+            //Broadcast the received data layer messages//
 
             Intent messageIntent = new Intent();
             messageIntent.setAction(Intent.ACTION_SEND);
