@@ -3,6 +3,7 @@ package com.example.gnikhil.qraksha_test;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.content.BroadcastReceiver;
+import android.util.Log;
 import android.widget.Button;
 import android.content.Context;
 import android.content.Intent;
@@ -27,9 +28,8 @@ public class MainActivity extends AppCompatActivity  {
     Button talkbutton;
     TextView textview;
     protected Handler myHandler;
-    int receivedMessageNumber = 1;
-    int sentMessageNumber = 1;
-
+    private static final String PANIC_STARTED_PATH = "/qraksha_started";
+    private static final String TAG = "QRaksha";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,65 +58,50 @@ public class MainActivity extends AppCompatActivity  {
 
     }
 
-
     public void messageText(String newinfo) {
         if (newinfo.compareTo("") != 0) {
             textview.append("\n" + newinfo);
         }
     }
 
-//Define a nested class that extends BroadcastReceiver//
-
+    //Define a nested class that extends BroadcastReceiver//
     public class Receiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-//Upon receiving each message from the wearable, display the following text//
-
-            String message = "I just received a message from the wearable " + receivedMessageNumber++;
-
-            textview.setText(message);
-
-
+            //Upon receiving each message from the wearable, display the following text//
+            String message = "onReceive : SOS on wearable";
+            Long tsLong = System.currentTimeMillis()/1000;
+            String ts = tsLong.toString();
+            textview.setText(ts + " : " + message);
+            new NewThread(PANIC_STARTED_PATH, message).start();
+            Log.e(TAG, message);
         }
     }
 
     public void talkClick(View v) {
-        String message = "Sending message.... ";
-        textview.setText(message);
+        String message = " : talkClick : PANIC sequence started";
+        Long tsLong = System.currentTimeMillis()/1000;
+        String ts = tsLong.toString();
+        textview.setText(ts + " : " + message);
 
-//Sending a message can block the main UI thread, so use a new thread//
-
-        new NewThread("/qraksha_test", message).start();
-
-    }
-
-//Use a Bundle to encapsulate our message//
-
-    public void sendmessage(String messageText) {
-        Bundle bundle = new Bundle();
-        bundle.putString("messageText", messageText);
-        Message msg = myHandler.obtainMessage();
-        msg.setData(bundle);
-        myHandler.sendMessage(msg);
-
+		//Sending a message can block the main UI thread, so use a new thread//
+        new NewThread(PANIC_STARTED_PATH, message).start();
+        Log.e(TAG, message);
     }
 
     class NewThread extends Thread {
         String path;
         String message;
 
-//Constructor for sending information to the Data Layer//
-
+        //Constructor for sending information to the Data Layer//
         NewThread(String p, String m) {
             path = p;
             message = m;
         }
 
         public void run() {
-
-//Retrieve the connected devices, known as nodes//
-
+            //Retrieve the connected devices, known as nodes//
             Task<List<Node>> wearableList =
                     Wearable.getNodeClient(getApplicationContext()).getConnectedNodes();
             try {
@@ -124,20 +109,18 @@ public class MainActivity extends AppCompatActivity  {
                 List<Node> nodes = Tasks.await(wearableList);
                 for (Node node : nodes) {
                     Task<Integer> sendMessageTask =
-
-//Send the message//
-
-                            Wearable.getMessageClient(MainActivity.this).sendMessage(node.getId(), path, message.getBytes());
-
+                    //Send the message//
+                    Wearable.getMessageClient(MainActivity.this).sendMessage(node.getId(), path, message.getBytes());
                     try {
-
-//Block on a task and get the result synchronously//
-
+                        //Block on a task and get the result synchronously//
                         Integer result = Tasks.await(sendMessageTask);
-                        sendmessage("I just sent the wearable a message " + sentMessageNumber++);
+                        String message = "Message sent successfully to wearable";
+                        Log.e(TAG, message);
+                        Long tsLong = System.currentTimeMillis()/1000;
+                        String ts = tsLong.toString();
+                        textview.setText(ts+ " : " + message);
 
                         //if the Task fails, then…..//
-
                     } catch (ExecutionException exception) {
                         //TODO: Handle the exception//
                     } catch (InterruptedException exception) {

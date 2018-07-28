@@ -76,7 +76,7 @@ public class MainActivity extends WearableActivity implements
     public void onTimerFinished(View v) {
         String onClickMessage = "Start the panic sequence ";
         new SendMessage(TIMER_FINISHED_PATH, onClickMessage).start();
-        Log.e(TAG, "onTimerFinished" + onClickMessage);
+        Log.e(TAG, "onTimerFinished: " + onClickMessage);
         // TODO
         // Vibrate to inform that the message is sent to the mobile
     }
@@ -85,10 +85,11 @@ public class MainActivity extends WearableActivity implements
         @Override
         public void onReceive(Context context, Intent intent) {
             String onMessageReceived = "Panic sequence started on the mobile";
-            Log.e(TAG, "BroadcastReceiver" + onMessageReceived);
+            Log.e(TAG, "BroadcastReceiver: " + onMessageReceived);
             DelayedConfirmationView imgView;
             imgView =  findViewById(R.id.delayed_confirmation);
             imgView.setImageResource(R.mipmap.sos);
+            finish();
             // TODO
             // Sound Panic Alarm
         }
