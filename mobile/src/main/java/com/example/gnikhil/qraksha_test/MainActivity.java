@@ -1,11 +1,22 @@
 package com.example.gnikhil.qraksha_test;
 
+import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
+import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.content.BroadcastReceiver;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.content.Context;
 import android.content.Intent;
@@ -25,18 +36,31 @@ import com.google.android.gms.wearable.Wearable;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import static android.Manifest.permission.SEND_SMS;
+import static android.Manifest.permission.READ_PHONE_STATE;
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.CALL_PHONE;
+import static android.Manifest.permission.INTERNET;
+import static android.Manifest.permission.ACCESS_NETWORK_STATE;
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
-public class MainActivity extends AppCompatActivity  {
+public class MainActivity extends AppCompatActivity{
 
     ImageButton panicbutton;
     Button saveMyInfoButton;
     Button saveEmergencyInfoButton;
     TextView myInfoName,myInfoPhone, myInfoEmail, emergencyInfoName, emergencyInfoPhone, emergencyInfoEmail;
+    public boolean locationAccepted, sendSmsAccepted, readPhoneStateAccepted, callPhoneAccepted, internetAccepted, accessNetworkStateAccepted, accessCoarseLocationAccepted;
 
     private static final String PANIC_STARTED_PATH = "/qraksha_started";
     private static final String TAG = "QRaksha";
     private SharedPreferences sharedpreferences;
     public static final String mypreference = "mypref";
+    private static final int PERMISSION_REQUEST_CODE = 200;
+
+    LocationManager locationManager;
+    private double longitudeNetwork;
+    private double latitudeNetwork;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +107,118 @@ public class MainActivity extends AppCompatActivity  {
         sharedpreferences = getSharedPreferences(mypreference,Context.MODE_PRIVATE); // 0 - for private mode
         getMyInfo();
         getEmergencyInfo();
+        if(!checkPermission()){
+            Log.e(TAG, "Missing permissions");
+            requestPermission();
+        }
+
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        checkLocation();
+    }
+
+    private void checkLocation(){
+        if(!isLocationEnabled()) {
+            Log.e(TAG, "checkLocation : Location not enabled");
+            requestLocation();
+        }
+        if(isLocationEnabled()){
+            Log.e(TAG, "checkLocation : Location enabled");
+            getLocation();
+        }
+        else{
+            Log.e(TAG, "checkLocation : Location not enabled even after requesting");
+        }
+    }
+
+    private boolean isLocationEnabled() {
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ||
+                locationManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER);
+    }
+
+    private void requestLocation() {
+        final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle("Enable Location")
+                .setMessage("Your Locations Settings is set to 'Off'.\nPlease Enable Location to " +
+                        "use this app")
+                .setPositiveButton("Location Settings", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                        Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivity(myIntent);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                    }
+                });
+        dialog.show();
+    }
+
+    @SuppressLint("MissingPermission")
+    private void getLocation(){
+        Location lastKnownLocation;
+        lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if(lastKnownLocation == null){
+            Log.e(TAG, "getLocation : GPS_PROVIDER returned NULL");
+            lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        }
+        if(lastKnownLocation == null){
+            Log.e(TAG, "getLocation : NETWORK_PROVIDER returned NULL");
+            lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+        }
+        if(lastKnownLocation == null) {
+            Log.e(TAG, "getLocation : PASSIVE_PROVIDER returned NULL");
+            return;
+        }
+        longitudeNetwork = lastKnownLocation.getLongitude();
+        latitudeNetwork = lastKnownLocation.getLatitude();
+        Log.e(TAG, "getLocation : Longitude : " + Double.toString(longitudeNetwork) + " Latitude : " + Double.toString(latitudeNetwork));
+    }
+
+    private boolean checkPermission() {
+        int result = ContextCompat.checkSelfPermission(getApplicationContext(), ACCESS_FINE_LOCATION);
+        int result1 = ContextCompat.checkSelfPermission(getApplicationContext(), SEND_SMS);
+        int result2 = ContextCompat.checkSelfPermission(getApplicationContext(), READ_PHONE_STATE);
+        int result3 = ContextCompat.checkSelfPermission(getApplicationContext(), CALL_PHONE);
+        int result4 = ContextCompat.checkSelfPermission(getApplicationContext(), INTERNET);
+        int result5 = ContextCompat.checkSelfPermission(getApplicationContext(), ACCESS_NETWORK_STATE);
+        int result6 = ContextCompat.checkSelfPermission(getApplicationContext(), ACCESS_COARSE_LOCATION);
+
+        return ((result == PackageManager.PERMISSION_GRANTED) && (result1 == PackageManager.PERMISSION_GRANTED)
+                && (result2 == PackageManager.PERMISSION_GRANTED) && (result3 == PackageManager.PERMISSION_GRANTED)
+                && (result4 == PackageManager.PERMISSION_GRANTED) && (result5 == PackageManager.PERMISSION_GRANTED)
+                && (result6 == PackageManager.PERMISSION_GRANTED));
+    }
+
+    private void requestPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION, SEND_SMS, READ_PHONE_STATE, CALL_PHONE, INTERNET, ACCESS_NETWORK_STATE, ACCESS_COARSE_LOCATION},
+                PERMISSION_REQUEST_CODE);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_CODE:
+                if (grantResults.length > 0) {
+                    locationAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                    sendSmsAccepted = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+                    readPhoneStateAccepted = grantResults[2] == PackageManager.PERMISSION_GRANTED;
+                    callPhoneAccepted = grantResults[3] == PackageManager.PERMISSION_GRANTED;
+                    internetAccepted = grantResults[4] == PackageManager.PERMISSION_GRANTED;
+                    accessNetworkStateAccepted = grantResults[5] == PackageManager.PERMISSION_GRANTED;
+                    accessCoarseLocationAccepted = grantResults[6] == PackageManager.PERMISSION_GRANTED;
+
+                    if (locationAccepted && sendSmsAccepted && readPhoneStateAccepted && callPhoneAccepted && internetAccepted && accessNetworkStateAccepted && accessCoarseLocationAccepted)
+                        Log.e(TAG, "All permissions granted");
+                    else {
+
+                        Log.e(TAG, "Some permissions are denied");
+                    }
+                }
+                break;
+        }
     }
 
     public void putMyInfo(View v){
@@ -152,6 +288,7 @@ public class MainActivity extends AppCompatActivity  {
         }
     }
 
+    @SuppressLint("MissingPermission")
     public void panicStart() {
         String message = "panicStart : PANIC sequence started";
         int duration = Toast.LENGTH_SHORT;
@@ -159,9 +296,25 @@ public class MainActivity extends AppCompatActivity  {
         Toast toast = Toast.makeText(getApplicationContext(), message, duration);
         toast.show();
 
+        getLocation();
+
+        message = "Help me, I am at Latitude : " + Double.toString(latitudeNetwork) + " Longitude : " + Double.toString(longitudeNetwork);
+        SmsManager smsManager = SmsManager.getDefault();
+        smsManager.sendTextMessage(emergencyInfoPhone.getText().toString(), null, message, null, null);
+
+        Intent intent = new Intent(Intent.ACTION_CALL);
+        intent.setData(Uri.parse("tel:" + emergencyInfoPhone.getText().toString()));
+        getApplicationContext().startActivity(intent);
+
         // TODO : Comment below for testing, Uncomment while submitting
-        //AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-        //audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0);
+        AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        int maxVolume;
+        try{
+            maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0);
+        }catch (NullPointerException Exception) {
+            //TODO Handle the exception
+        }
 
         MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.police_siren);
         mediaPlayer.start();
