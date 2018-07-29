@@ -17,20 +17,95 @@
         android:paddingTop="@dimen/vertical_margin"
         tools:context=".MainActivity">
 
-
-    <Button
-        android:id="@+id/talkButton"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="Talk to the wearable"
-        android:onClick="talkClick"/>
-
+        <ImageButton
+            android:id="@+id/panicButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center"
+            android:clickable="true"
+            android:background="@null"
+            android:src="@mipmap/sos"/>
 
         <TextView
-            android:id="@+id/textView"
+            android:id="@+id/my_info_id"
             android:layout_width="match_parent"
-            android:layout_height="fill_parent"
-            />
+            android:layout_height="wrap_content"
+            android:textSize="32dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="5dp"
+            android:text="@string/my_info"
+            android:padding="15dp"/>
 
+        <EditText
+            android:id="@+id/name_field"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:inputType="text|textPersonName"
+            android:paddingTop="5dp"
+            android:hint="Name"/>
+        <EditText
+            android:id="@+id/phone_field"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="phone"
+            android:layout_gravity="center"
+            android:paddingTop="5dp"
+            android:hint="Phone no" />
+        <EditText
+            android:id="@+id/email_field"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text|textEmailAddress"
+            android:layout_gravity="center"
+            android:paddingTop="5dp"
+            android:hint="Email" />
+
+        <Button
+            android:id="@+id/save_my_info_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/save"/>
+
+        <TextView
+            android:id="@+id/emergency_info_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="32dp"
+            android:layout_gravity="center"
+            android:text="@string/emergency_info"
+            android:padding="15dp"/>
+
+        <EditText
+            android:id="@+id/emergency_name_field"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:hint="Name"
+            android:inputType="text|textPersonName"
+            android:paddingTop="5dp"/>
+        <EditText
+            android:id="@+id/emergency_phone_field"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="phone"
+            android:layout_gravity="center"
+            android:paddingTop="5dp"
+            android:hint="Phone no" />
+        <EditText
+            android:id="@+id/emergency_email_field"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text|textEmailAddress"
+            android:layout_gravity="center"
+            android:paddingTop="5dp"
+            android:hint="Email" />
+
+        <Button
+            android:id="@+id/save_emergency_info_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/save"/>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>
