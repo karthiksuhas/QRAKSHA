@@ -1,6 +1,7 @@
 package com.example.gnikhil.qraksha_test;
 
 import android.content.BroadcastReceiver;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,7 +29,6 @@ public class MainActivity extends WearableActivity implements
     private static final String TAG = "QRaksha";
     private static final int NUM_SECONDS = 5;
 
-    private static final String TIMER_SELECTED_PATH = "/qraksha_stop";
     private static final String TIMER_FINISHED_PATH = "/qraksha_start";
 
     private DelayedConfirmationView delayedConfirmationView;	
@@ -58,6 +58,10 @@ public class MainActivity extends WearableActivity implements
         IntentFilter newFilter = new IntentFilter(Intent.ACTION_SEND);
         Receiver messageReceiver = new Receiver();
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, newFilter);
+
+        // TODO : Comment below for testing, Uncomment while submitting
+        AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0);
     }
 
     /**
@@ -74,9 +78,8 @@ public class MainActivity extends WearableActivity implements
         v.setPressed(true);
         delayedConfirmationView.setTotalTimeMs(0);
         ((DelayedConfirmationView) v).setListener(null);
-        String onClickMessage = "Stop the panic sequence ";
-        new SendMessage(TIMER_SELECTED_PATH, onClickMessage).start();
-        Log.e(TAG, "onTimerFinished" + onClickMessage);
+        String onClickMessage = "Operation cancelled bt the user";
+        Log.e(TAG, "onTimerSelected : " + onClickMessage);
         finish();
     }
 
