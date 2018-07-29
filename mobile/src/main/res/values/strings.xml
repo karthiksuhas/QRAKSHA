@@ -4,4 +4,7 @@
     <string name="emergency_info">Emergency information</string>
     <string name="save">SAVE</string>
     <string name="clear">CLEAR</string>
+    <string name="name">Name</string>
+    <string name="phoneNumber">Phone number</string>
+    <string name="emailAddress">Email Address</string>
 </resources>

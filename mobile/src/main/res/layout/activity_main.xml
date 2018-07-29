@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -21,7 +20,6 @@
             android:id="@+id/panicButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
             android:layout_gravity="center"
             android:clickable="true"
             android:background="@null"
@@ -31,7 +29,7 @@
             android:id="@+id/my_info_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="32dp"
+            android:textSize="32sp"
             android:layout_gravity="center"
             android:layout_marginTop="5dp"
             android:text="@string/my_info"
@@ -44,7 +42,7 @@
             android:layout_gravity="center"
             android:inputType="text|textPersonName"
             android:paddingTop="5dp"
-            android:hint="Name"/>
+            android:hint="@string/name"/>
         <EditText
             android:id="@+id/phone_field"
             android:layout_width="match_parent"
@@ -52,7 +50,7 @@
             android:inputType="phone"
             android:layout_gravity="center"
             android:paddingTop="5dp"
-            android:hint="Phone no" />
+            android:hint="@string/phoneNumber" />
         <EditText
             android:id="@+id/email_field"
             android:layout_width="match_parent"
@@ -60,7 +58,7 @@
             android:inputType="text|textEmailAddress"
             android:layout_gravity="center"
             android:paddingTop="5dp"
-            android:hint="Email" />
+            android:hint="@string/emailAddress" />
 
         <Button
             android:id="@+id/save_my_info_id"
@@ -72,7 +70,7 @@
             android:id="@+id/emergency_info_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="32dp"
+            android:textSize="32sp"
             android:layout_gravity="center"
             android:text="@string/emergency_info"
             android:padding="15dp"/>
@@ -82,7 +80,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:hint="Name"
+            android:hint="@string/name"
             android:inputType="text|textPersonName"
             android:paddingTop="5dp"/>
         <EditText
@@ -92,7 +90,7 @@
             android:inputType="phone"
             android:layout_gravity="center"
             android:paddingTop="5dp"
-            android:hint="Phone no" />
+            android:hint="@string/phoneNumber" />
         <EditText
             android:id="@+id/emergency_email_field"
             android:layout_width="match_parent"
@@ -100,7 +98,7 @@
             android:inputType="text|textEmailAddress"
             android:layout_gravity="center"
             android:paddingTop="5dp"
-            android:hint="Email" />
+            android:hint="@string/emailAddress"/>
 
         <Button
             android:id="@+id/save_emergency_info_id"

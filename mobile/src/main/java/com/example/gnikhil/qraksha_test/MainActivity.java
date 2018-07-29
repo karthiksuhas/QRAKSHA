@@ -46,18 +46,37 @@ import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 
 public class MainActivity extends AppCompatActivity{
 
-    ImageButton panicbutton;
+    // panicButton is the SOS button on the App home screen
+    ImageButton panicButton;
+
+    // Save button to save Personal information
     Button saveMyInfoButton;
+
+    // Save button to save Emergency information
     Button saveEmergencyInfoButton;
+
+    // Text views to handle user inputs of Personal and Emergency information
     TextView myInfoName,myInfoPhone, myInfoEmail, emergencyInfoName, emergencyInfoPhone, emergencyInfoEmail;
+
+    // Variables that save several permission status
     public boolean locationAccepted, sendSmsAccepted, readPhoneStateAccepted, callPhoneAccepted, internetAccepted, accessNetworkStateAccepted, accessCoarseLocationAccepted;
 
+    // Unique path used by mobile app to communicate with wear app
     private static final String PANIC_STARTED_PATH = "/qraksha_started";
+
+    // Tag to be used in Logcat logs
     private static final String TAG = "QRaksha";
+
+    // Object to manage key-value pairs (used to save user input)
     private SharedPreferences sharedpreferences;
+
+    // File to which user inputs are written in form of key-value pairs
     public static final String mypreference = "mypref";
+
+    // Randomly chosen number to uniqiely identify current app
     private static final int PERMISSION_REQUEST_CODE = 200;
 
+    // LocationManager class provides access to the system location services
     LocationManager locationManager;
     private double longitudeNetwork;
     private double latitudeNetwork;
@@ -67,62 +86,80 @@ public class MainActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Get a handle to the My Information section text views
         myInfoName = findViewById(R.id.name_field);
         myInfoPhone = findViewById(R.id.phone_field);
         myInfoEmail = findViewById(R.id.email_field);
 
+        // Get a handle to the Emergency Information section text views
         emergencyInfoName = findViewById(R.id.emergency_name_field);
         emergencyInfoPhone = findViewById(R.id.emergency_phone_field);
         emergencyInfoEmail = findViewById(R.id.emergency_email_field);
 
-        panicbutton = findViewById(R.id.panicButton);
-        panicbutton.setOnClickListener(new View.OnClickListener() {
+        // When the Panic button is pressed, call panicStart method to start Panic sequence
+        panicButton = findViewById(R.id.panicButton);
+        panicButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 panicStart();
             }
         });
 
-        saveEmergencyInfoButton = findViewById(R.id.save_emergency_info_id);
-        saveEmergencyInfoButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                putEmergencyInfo(v);
-            }
-        });
-
+        // When the saveMyInfoButton button is pressed, write user provided details to disk
         saveMyInfoButton = findViewById(R.id.save_my_info_id);
         saveMyInfoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Writes the MyInfo to disk
                 putMyInfo(v);
             }
         });
 
-        //Register to receive local broadcasts, which we'll be creating in the next step//
+        // When the saveEmergencyInfoButton button is pressed, write user provided details to disk
+        saveEmergencyInfoButton = findViewById(R.id.save_emergency_info_id);
+        saveEmergencyInfoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Writes the EmergencyInfo to disk
+                putEmergencyInfo(v);
+            }
+        });
+
+        //Register to receive local broadcasts
         IntentFilter messageFilter = new IntentFilter(Intent.ACTION_SEND);
         Receiver messageReceiver = new Receiver();
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, messageFilter);
 
+        // Object that can be used to retrieve and modify the preference values.
         sharedpreferences = getSharedPreferences(mypreference,Context.MODE_PRIVATE); // 0 - for private mode
+        // Retrieve user data previously saved from the disk
         getMyInfo();
         getEmergencyInfo();
+
+        // Check if the App has all the required permissions
         if(!checkPermission()){
             Log.e(TAG, "Missing permissions");
+            // Request the user to provide missing permissions
             requestPermission();
         }
 
+        // Returns the handle to a system-level service by class
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        // Check if the Location is enabled
         checkLocation();
     }
 
+    // Check if the Location is enabled or not and requests the user to enable location
     private void checkLocation(){
         if(!isLocationEnabled()) {
             Log.e(TAG, "checkLocation : Location not enabled");
+            // Prompt user to enable location
             requestLocation();
         }
         if(isLocationEnabled()){
             Log.e(TAG, "checkLocation : Location enabled");
+            // Location enabled, get the co-ordinates
             getLocation();
         }
         else{
@@ -130,12 +167,15 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
+    // Returns true if atleast one of the location services is enabled
     private boolean isLocationEnabled() {
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
                 locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ||
                 locationManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER);
     }
 
+    // TODO Fix this (Not working)
+    // Shows a diaglogue box to enable location
     private void requestLocation() {
         final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
         dialog.setTitle("Enable Location")
@@ -157,26 +197,33 @@ public class MainActivity extends AppCompatActivity{
     }
 
     @SuppressLint("MissingPermission")
+    // Retrieves the last known location from any location service
     private void getLocation(){
         Location lastKnownLocation;
+
+        // Request last known location  from GPS Service
         lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         if(lastKnownLocation == null){
             Log.e(TAG, "getLocation : GPS_PROVIDER returned NULL");
+            // Request last known location  from Network Service
             lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         }
         if(lastKnownLocation == null){
             Log.e(TAG, "getLocation : NETWORK_PROVIDER returned NULL");
+            // Request last known location  from Passive Service
             lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
         }
         if(lastKnownLocation == null) {
             Log.e(TAG, "getLocation : PASSIVE_PROVIDER returned NULL");
             return;
         }
+        // If the execution reached here, we might have recevied the location update from atleast one service.
         longitudeNetwork = lastKnownLocation.getLongitude();
         latitudeNetwork = lastKnownLocation.getLatitude();
         Log.e(TAG, "getLocation : Longitude : " + Double.toString(longitudeNetwork) + " Latitude : " + Double.toString(latitudeNetwork));
     }
 
+    // Check for all required permissions on the App invocation and request user if any permissions are missing
     private boolean checkPermission() {
         int result = ContextCompat.checkSelfPermission(getApplicationContext(), ACCESS_FINE_LOCATION);
         int result1 = ContextCompat.checkSelfPermission(getApplicationContext(), SEND_SMS);
@@ -192,11 +239,13 @@ public class MainActivity extends AppCompatActivity{
                 && (result6 == PackageManager.PERMISSION_GRANTED));
     }
 
+    // Request for all the missing permissions all at once
     private void requestPermission() {
         ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION, SEND_SMS, READ_PHONE_STATE, CALL_PHONE, INTERNET, ACCESS_NETWORK_STATE, ACCESS_COARSE_LOCATION},
                 PERMISSION_REQUEST_CODE);
     }
 
+    // Callback called after User is done with approving the permissions
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
@@ -213,7 +262,6 @@ public class MainActivity extends AppCompatActivity{
                     if (locationAccepted && sendSmsAccepted && readPhoneStateAccepted && callPhoneAccepted && internetAccepted && accessNetworkStateAccepted && accessCoarseLocationAccepted)
                         Log.e(TAG, "All permissions granted");
                     else {
-
                         Log.e(TAG, "Some permissions are denied");
                     }
                 }
@@ -221,6 +269,7 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
+    //  Write key-value pairs of user's My Information to disk
     public void putMyInfo(View v){
         SharedPreferences.Editor editor = sharedpreferences .edit();
         editor.putString("my_info_name", myInfoName.getText().toString());
@@ -231,6 +280,7 @@ public class MainActivity extends AppCompatActivity{
         Log.e(TAG, "Committed my_info");
     }
 
+    //  Retrieve key-value pairs of user's My Information from disk
     public void getMyInfo(){
 
         if(sharedpreferences.contains("my_info_name")){
@@ -245,6 +295,7 @@ public class MainActivity extends AppCompatActivity{
         Log.e(TAG, "Extracted my_info");
     }
 
+    //  Write key-value pairs of user's Emergency Information to disk
     public void putEmergencyInfo(View v){
         SharedPreferences.Editor editor = sharedpreferences .edit();
         editor.putString("emergency_info_name", emergencyInfoName.getText().toString());
@@ -255,6 +306,7 @@ public class MainActivity extends AppCompatActivity{
         Log.e(TAG, "Committed emergency_info");
     }
 
+    //  Retrieve key-value pairs of user's Emergency Information from disk
     public void getEmergencyInfo(){
 
         if(sharedpreferences.contains("emergency_info_name")){
@@ -273,40 +325,44 @@ public class MainActivity extends AppCompatActivity{
     public class Receiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-
-            //Upon receiving each message from the wearable, display the following text//
+            // Received a SOS message from the wearable
             String message = "onReceive : SOS on wearable";
             int duration = Toast.LENGTH_SHORT;
 
+            // Display a toast on the screen indicating that SOS is triggered on the wearable
             Toast toast = Toast.makeText(context, message, duration);
             toast.show();
 
+            // Start the panic sequence
             panicStart();
-
-            new NewThread(PANIC_STARTED_PATH, message).start();
-            Log.e(TAG, message);
         }
     }
 
+    // Executes the Panic sequence
     @SuppressLint("MissingPermission")
     public void panicStart() {
         String message = "panicStart : PANIC sequence started";
         int duration = Toast.LENGTH_SHORT;
 
+        // Display a toast on the screen indicating that Panic sequence is started
         Toast toast = Toast.makeText(getApplicationContext(), message, duration);
         toast.show();
 
+        // Get the latest location in the system
         getLocation();
 
+        // Send an SMS to the Emergency contact with the location (Latitude and Longitude details emebedded in the SMS)
         message = "Help me, I am at Latitude : " + Double.toString(latitudeNetwork) + " Longitude : " + Double.toString(longitudeNetwork);
         SmsManager smsManager = SmsManager.getDefault();
         smsManager.sendTextMessage(emergencyInfoPhone.getText().toString(), null, message, null, null);
 
+        // Call the Emergency contact
         Intent intent = new Intent(Intent.ACTION_CALL);
         intent.setData(Uri.parse("tel:" + emergencyInfoPhone.getText().toString()));
         getApplicationContext().startActivity(intent);
 
         // TODO : Comment below for testing, Uncomment while submitting
+        // Increases the Phone's media volume to maximum so that the Alarm can be heard
         AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         int maxVolume;
         try{
@@ -316,6 +372,7 @@ public class MainActivity extends AppCompatActivity{
             //TODO Handle the exception
         }
 
+        // Sound the Alarm
         MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.police_siren);
         mediaPlayer.start();
 
@@ -324,6 +381,7 @@ public class MainActivity extends AppCompatActivity{
         Log.e(TAG, message);
     }
 
+    // Thread which send the acknowledgement to the wearable that the panic sequence is started on the mobile
     class NewThread extends Thread {
         String path;
         String message;

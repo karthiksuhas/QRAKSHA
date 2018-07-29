@@ -13,8 +13,7 @@ public class MessageService extends WearableListenerService {
         if (messageEvent.getPath().equals(PANIC_STARTED_PATH)) {
             final String message = new String(messageEvent.getData());
 
-            //Broadcast the received data layer messages//
-
+            //Broadcast the received data layer messages
             Intent messageIntent = new Intent();
             messageIntent.setAction(Intent.ACTION_SEND);
             messageIntent.putExtra("message", message);
