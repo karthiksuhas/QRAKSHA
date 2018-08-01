@@ -169,14 +169,17 @@ public class MainActivity extends AppCompatActivity{
 
     // Returns true if atleast one of the location services is enabled
     private boolean isLocationEnabled() {
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
-                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ||
-                locationManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER);
+        if(locationAccepted && accessNetworkStateAccepted && accessCoarseLocationAccepted) {
+            return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                    locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        }
+        Log.e(TAG, "isLocationEnabled : Location permissions are not granted");
+        return false;
     }
 
-    // TODO Fix this (Not working)
     // Shows a diaglogue box to enable location
     private void requestLocation() {
+        Log.e(TAG, "requestLocation : Requesting location");
         final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
         dialog.setTitle("Enable Location")
                 .setMessage("Your Locations Settings is set to 'Off'.\nPlease Enable Location to " +
@@ -201,26 +204,28 @@ public class MainActivity extends AppCompatActivity{
     private void getLocation(){
         Location lastKnownLocation;
 
-        // Request last known location  from GPS Service
-        lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        if(lastKnownLocation == null){
-            Log.e(TAG, "getLocation : GPS_PROVIDER returned NULL");
-            // Request last known location  from Network Service
-            lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        if(locationAccepted && accessNetworkStateAccepted && accessCoarseLocationAccepted){
+            // Request last known location  from GPS Service
+            lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if(lastKnownLocation == null){
+                Log.e(TAG, "getLocation : GPS_PROVIDER returned NULL");
+                // Request last known location  from Network Service
+                lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            }
+            if(lastKnownLocation == null){
+                Log.e(TAG, "getLocation : NETWORK_PROVIDER returned NULL");
+                // Request last known location  from Passive Service
+                lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+            }
+            if(lastKnownLocation == null) {
+                Log.e(TAG, "getLocation : PASSIVE_PROVIDER returned NULL");
+                return;
+            }
+            // If the execution reached here, we might have recevied the location update from atleast one service.
+            longitudeNetwork = lastKnownLocation.getLongitude();
+            latitudeNetwork = lastKnownLocation.getLatitude();
+            Log.e(TAG, "getLocation : Longitude : " + Double.toString(longitudeNetwork) + " Latitude : " + Double.toString(latitudeNetwork));
         }
-        if(lastKnownLocation == null){
-            Log.e(TAG, "getLocation : NETWORK_PROVIDER returned NULL");
-            // Request last known location  from Passive Service
-            lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-        }
-        if(lastKnownLocation == null) {
-            Log.e(TAG, "getLocation : PASSIVE_PROVIDER returned NULL");
-            return;
-        }
-        // If the execution reached here, we might have recevied the location update from atleast one service.
-        longitudeNetwork = lastKnownLocation.getLongitude();
-        latitudeNetwork = lastKnownLocation.getLatitude();
-        Log.e(TAG, "getLocation : Longitude : " + Double.toString(longitudeNetwork) + " Latitude : " + Double.toString(latitudeNetwork));
     }
 
     // Check for all required permissions on the App invocation and request user if any permissions are missing
@@ -233,10 +238,15 @@ public class MainActivity extends AppCompatActivity{
         int result5 = ContextCompat.checkSelfPermission(getApplicationContext(), ACCESS_NETWORK_STATE);
         int result6 = ContextCompat.checkSelfPermission(getApplicationContext(), ACCESS_COARSE_LOCATION);
 
-        return ((result == PackageManager.PERMISSION_GRANTED) && (result1 == PackageManager.PERMISSION_GRANTED)
-                && (result2 == PackageManager.PERMISSION_GRANTED) && (result3 == PackageManager.PERMISSION_GRANTED)
-                && (result4 == PackageManager.PERMISSION_GRANTED) && (result5 == PackageManager.PERMISSION_GRANTED)
-                && (result6 == PackageManager.PERMISSION_GRANTED));
+        locationAccepted             = (result == PackageManager.PERMISSION_GRANTED);
+        sendSmsAccepted              = (result1 == PackageManager.PERMISSION_GRANTED);
+        readPhoneStateAccepted       = (result2 == PackageManager.PERMISSION_GRANTED);
+        callPhoneAccepted            = (result3 == PackageManager.PERMISSION_GRANTED);
+        internetAccepted             = (result4 == PackageManager.PERMISSION_GRANTED);
+        accessNetworkStateAccepted   = (result5 == PackageManager.PERMISSION_GRANTED);
+        accessCoarseLocationAccepted = (result6 == PackageManager.PERMISSION_GRANTED);
+
+        return (locationAccepted && sendSmsAccepted && readPhoneStateAccepted && callPhoneAccepted && internetAccepted && accessNetworkStateAccepted && accessCoarseLocationAccepted);
     }
 
     // Request for all the missing permissions all at once
@@ -351,15 +361,19 @@ public class MainActivity extends AppCompatActivity{
         // Get the latest location in the system
         getLocation();
 
-        // Send an SMS to the Emergency contact with the location (Latitude and Longitude details emebedded in the SMS)
-        message = "Help me, I am at Latitude : " + Double.toString(latitudeNetwork) + " Longitude : " + Double.toString(longitudeNetwork);
-        SmsManager smsManager = SmsManager.getDefault();
-        smsManager.sendTextMessage(emergencyInfoPhone.getText().toString(), null, message, null, null);
+        if(readPhoneStateAccepted && sendSmsAccepted) {
+            // Send an SMS to the Emergency contact with the location (Latitude and Longitude details embedded in the SMS)
+            message = "Help me, I am at http://maps.google.com/?q=" + Double.toString(latitudeNetwork) + "," + Double.toString(longitudeNetwork) + "\n -" + myInfoName.getText().toString();
+            SmsManager smsManager = SmsManager.getDefault();
+            smsManager.sendTextMessage(emergencyInfoPhone.getText().toString(), null, message, null, null);
+        }
 
-        // Call the Emergency contact
-        Intent intent = new Intent(Intent.ACTION_CALL);
-        intent.setData(Uri.parse("tel:" + emergencyInfoPhone.getText().toString()));
-        getApplicationContext().startActivity(intent);
+        if(readPhoneStateAccepted && callPhoneAccepted){
+            // Call the Emergency contact
+            Intent intent = new Intent(Intent.ACTION_CALL);
+            intent.setData(Uri.parse("tel:" + emergencyInfoPhone.getText().toString()));
+            getApplicationContext().startActivity(intent);
+        }
 
         // TODO : Comment below for testing, Uncomment while submitting
         // Increases the Phone's media volume to maximum so that the Alarm can be heard
